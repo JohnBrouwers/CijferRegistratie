@@ -1,0 +1,62 @@
+﻿@model IEnumerable<CijferRegistratie.Models.VakListItemViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+@*<p>
+    <a asp-action="Create">Create New</a>
+</p>*@
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Naam)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EC)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Naam)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EC)
+            </td>
+            <td>
+                    @if (item.AantalPogingen > 0)
+                    {
+                        if (item.HoogsteResultaat >= 6)
+                        {
+                            @:Behaald
+                        }
+                        else
+                        {
+                            <a asp-controller="Poging" asp-action="CreateSpecial" asp-route-vakId="@item.Id">@item.HoogsteResultaat</a>
+                        }
+                    }
+                    else                    
+                    {
+                        <a asp-controller="Poging" asp-action="CreateSpecial" asp-route-vakId="@item.Id">Poging Toevoegen</a>                        
+                    }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
