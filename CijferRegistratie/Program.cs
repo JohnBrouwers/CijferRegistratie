@@ -12,6 +12,9 @@ builder.Services.AddDbContext<CijferRegistratieDbContext>(options => {
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddSession(options => { options.Cookie.Name = "Mutaties"; });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -24,6 +27,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseSession();
 
 app.UseRouting();
 

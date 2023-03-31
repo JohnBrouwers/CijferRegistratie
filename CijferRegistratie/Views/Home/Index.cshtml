@@ -1,4 +1,4 @@
-﻿@model IEnumerable<CijferRegistratie.Models.VakListItemViewModel>
+﻿@model VakkenListViewModel
 
 @{
     ViewData["Title"] = "Index";
@@ -13,22 +13,22 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Id)
+                @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().Id)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Naam)
+                @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().Naam)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.EC)
+                @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().EC)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Status)
+                @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().Status)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model.VakListItems) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Id)
@@ -58,5 +58,17 @@
             </td>
         </tr>
 }
+
     </tbody>
 </table>
+
+<div style="color:darkgreen">
+    <hr/>
+    <label asp-for="Mutaties"></label>
+    <ul>
+    @foreach (var item in Model.Mutaties){
+        <li>@item</li>    
+    }
+    </ul>
+
+</div>

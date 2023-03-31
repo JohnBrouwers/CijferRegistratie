@@ -2,6 +2,8 @@
 using CijferRegistratie.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using Newtonsoft.Json;
 using System.Diagnostics;
 
 namespace CijferRegistratie.Controllers
@@ -19,7 +21,7 @@ namespace CijferRegistratie.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var model = await _context.Vakken.OrderByDescending(v => v.EC)
+            var vakListItems = await _context.Vakken.OrderByDescending(v => v.EC)
                 .Select(v => new VakListItemViewModel(
                     v.Id,
                     v.Naam,
@@ -28,6 +30,13 @@ namespace CijferRegistratie.Controllers
                     v.Pogingen.Count > 0 ? v.Pogingen.Max(p => p.Resultaat) : 0
                 //v.Pogingen.Select(p => p.Resultaat).OrderByDescending(p => p).FirstOrDefault(-1)
                 )).ToListAsync();
+
+            var model = new VakkenListViewModel();
+            model.VakListItems = vakListItems;
+
+            string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
+            string[] mutaties = JsonConvert.DeserializeObject<string[]>(jsonMutaties);
+            model.Mutaties = mutaties;
 
             return View(model);
         }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using CijferRegistratie.Data;
 using CijferRegistratie.Data.Entities;
 using CijferRegistratie.Models;
+using Newtonsoft.Json;
 
 namespace CijferRegistratie.Controllers
 {
@@ -91,13 +92,30 @@ namespace CijferRegistratie.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateSpecial([Bind("VakId,Jaar,Resultaat")] PogingCreateModel model)
+        public async Task<IActionResult> CreateSpecial([Bind("VakId,Vak,Jaar,Resultaat")] PogingCreateModel model)
         {
             if (ModelState.IsValid)
             {
+
                 var nieuwePoging = new Poging { Jaar = model.Jaar, Resultaat = model.Resultaat, VakId = model.VakId };
                 _context.Add(nieuwePoging);
                 await _context.SaveChangesAsync();
+
+                //Poging toegevoegd aan: {vaknaam}, met resultaat: {resultaat}
+                //als behaald => resultaat >= 6
+                //  Vak {vaknaam} is behaald
+
+                string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
+                string[] mutaties = JsonConvert.DeserializeObject<string[]>(jsonMutaties);
+                Array.Resize<string>(ref mutaties, mutaties.Length + 1);
+                string poging = $"Poging toegevoegd aan: {model.Vak}, met resultaat: {model.Resultaat}";
+                mutaties[mutaties.Length -1] = poging;
+                if (model.Resultaat >= 6) {                 
+                    Array.Resize<string>(ref mutaties, mutaties.Length + 1);
+                    mutaties[mutaties.Length -1] = $"Vak {model.Vak} is behaald";
+                }
+                this.HttpContext.Session.SetString("Mutaties", JsonConvert.SerializeObject(mutaties));
+
                 return RedirectToAction(nameof(Index), "Home");
             }
             return View(model);
