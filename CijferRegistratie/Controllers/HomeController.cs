@@ -1,10 +1,10 @@
 ﻿using CijferRegistratie.Data;
+using CijferRegistratie.Data.Entities;
 using CijferRegistratie.Models;
+using CijferRegistratie.Tools;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;//move away from Newtonsoft
 using System.Diagnostics;
-using System.Net.Http;
 
 namespace CijferRegistratie.Controllers
 {
@@ -14,8 +14,7 @@ namespace CijferRegistratie.Controllers
         private readonly CijferRegistratieDbContext _context;
 
         public HomeController(ILogger<HomeController> logger, 
-            CijferRegistratieDbContext context,
-            IHttpClientFactory httpClientFactory)
+            CijferRegistratieDbContext context)
         {
             _logger = logger;
             _context = context;
@@ -23,6 +22,15 @@ namespace CijferRegistratie.Controllers
 
         public async Task<IActionResult> Index()
         {
+            #region Sample_SessionExtensionMethod
+
+            //ieder type met een default constructor kun je met deze extension method opslaan
+            var gemNotInSession = this.HttpContext.Session.Get<Vak>("gem");
+            this.HttpContext.Session.Set<Vak>("gem", new Vak { Naam = "Generic Extension Methods" });
+            var gemFromSession = this.HttpContext.Session.Get<Vak>("gem");
+
+            #endregion
+
             var vakListItems = await _context.Vakken.OrderByDescending(v => v.EC)
                 .Select(v => new VakListItemViewModel(
                     v.Id,
@@ -30,15 +38,11 @@ namespace CijferRegistratie.Controllers
                     v.EC,
                     v.Pogingen.Count,
                     v.Pogingen.Count > 0 ? v.Pogingen.Max(p => p.Resultaat) : null
-                //v.Pogingen.Select(p => p.Resultaat).OrderByDescending(p => p).FirstOrDefault(-1)
                 )).ToListAsync();
 
             var model = new VakkenListViewModel();
             model.VakListItems = vakListItems;
-
-            string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
-            string[] mutaties = JsonSerializer.Deserialize<string[]>(jsonMutaties) ?? Array.Empty<string>();
-            model.Mutaties = mutaties;
+            model.Mutaties = this.HttpContext.Session.Get<List<string>>("Mutaties").ToArray() ;
 
             return View(model);
         }

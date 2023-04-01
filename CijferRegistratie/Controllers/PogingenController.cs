@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CijferRegistratie.Data;
+using CijferRegistratie.Data.Entities;
+using CijferRegistratie.Models;
+using CijferRegistratie.Tools;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CijferRegistratie.Data;
-using CijferRegistratie.Data.Entities;
-using CijferRegistratie.Models;
-using System.Text.Json; //migrate away from Newtonsoft ;)
-using System.Net.Http;
-using Microsoft.Net.Http.Headers;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace CijferRegistratie.Controllers
 {
@@ -106,21 +99,12 @@ namespace CijferRegistratie.Controllers
                 _context.Add(nieuwePoging);
                 await _context.SaveChangesAsync();
 
-
-                string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
-                string[] mutaties = JsonSerializer.Deserialize<string[]>(jsonMutaties) ?? Array.Empty<string>();
-                Array.Resize(ref mutaties, mutaties.Length + 1);
-
-
-                //Altijd: Poging toegevoegd aan: {vaknaam}, met resultaat: {resultaat}
-                //Als resultaat >= 6 dan: Vak {vaknaam} is behaald
-                string poging = $"Poging toegevoegd aan: {model.Vak}, met resultaat: {model.Resultaat} ({studentType})";
-                mutaties[mutaties.Length -1] = poging;
+                List<string> mutaties = this.HttpContext.Session.Get<List<string>>("Mutaties");
+                mutaties.Add($"Poging toegevoegd aan: {model.Vak}, met resultaat: {model.Resultaat} ({studentType})");
                 if (model.Resultaat >= 6) {                 
-                    Array.Resize(ref mutaties, mutaties.Length + 1);
-                    mutaties[mutaties.Length -1] = $"Vak {model.Vak} is behaald";
+                    mutaties.Add($"Vak {model.Vak} is behaald");
                 }
-                this.HttpContext.Session.SetString("Mutaties", JsonSerializer.Serialize(mutaties));
+                this.HttpContext.Session.Set<List<string>>("Mutaties", mutaties);
 
                 return RedirectToAction(nameof(Index), "Home");
             }
