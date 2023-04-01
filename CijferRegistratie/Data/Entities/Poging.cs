@@ -16,5 +16,7 @@ namespace CijferRegistratie.Data.Entities
         [ForeignKey(nameof(Vak))]
         public int VakId { get; set; }
         public Vak? Vak { get; set; }
+
+        public string? StudentType { get; set; }
     }
 }

@@ -2,9 +2,9 @@
 using CijferRegistratie.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using Newtonsoft.Json;
+using System.Text.Json;//move away from Newtonsoft
 using System.Diagnostics;
+using System.Net.Http;
 
 namespace CijferRegistratie.Controllers
 {
@@ -13,7 +13,9 @@ namespace CijferRegistratie.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly CijferRegistratieDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger, CijferRegistratieDbContext context)
+        public HomeController(ILogger<HomeController> logger, 
+            CijferRegistratieDbContext context,
+            IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _context = context;
@@ -27,7 +29,7 @@ namespace CijferRegistratie.Controllers
                     v.Naam,
                     v.EC,
                     v.Pogingen.Count,
-                    v.Pogingen.Count > 0 ? v.Pogingen.Max(p => p.Resultaat) : 0
+                    v.Pogingen.Count > 0 ? v.Pogingen.Max(p => p.Resultaat) : null
                 //v.Pogingen.Select(p => p.Resultaat).OrderByDescending(p => p).FirstOrDefault(-1)
                 )).ToListAsync();
 
@@ -35,7 +37,7 @@ namespace CijferRegistratie.Controllers
             model.VakListItems = vakListItems;
 
             string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
-            string[] mutaties = JsonConvert.DeserializeObject<string[]>(jsonMutaties);
+            string[] mutaties = JsonSerializer.Deserialize<string[]>(jsonMutaties) ?? Array.Empty<string>();
             model.Mutaties = mutaties;
 
             return View(model);

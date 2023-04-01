@@ -5,15 +5,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionstring = builder.Configuration.GetConnectionString("CijferRegistratieDbConnection");
 
+// Add services to the container.
+
 builder.Services.AddDbContext<CijferRegistratieDbContext>(options => {
     options.UseSqlServer(connectionstring);
 });
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
-
-
 builder.Services.AddSession(options => { options.Cookie.Name = "Mutaties"; });
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(() => new HttpClient(
+    new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
+));
 
 var app = builder.Build();
 

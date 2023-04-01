@@ -25,5 +25,9 @@ namespace CijferRegistratie.Models
         public int AantalPogingen { get; set; }
 
         public int? HoogsteResultaat { get; set; }
+
+        public bool Behaald => AantalPogingen > 0 && HoogsteResultaat >= 6;
+
+        public string? CreateSpecialLinkText => HoogsteResultaat.HasValue ? HoogsteResultaat.ToString(): "Poging Toevoegen";
     }
 }

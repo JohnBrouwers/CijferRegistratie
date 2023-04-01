@@ -11,6 +11,6 @@ namespace CijferRegistratie.Data.Entities
 
         public int EC { get; set; }
 
-        public ICollection<Poging> Pogingen { get; set; }
+        public ICollection<Poging> Pogingen { get; set; } = new List<Poging>();
     }
 }

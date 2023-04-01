@@ -8,17 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using CijferRegistratie.Data;
 using CijferRegistratie.Data.Entities;
 using CijferRegistratie.Models;
-using Newtonsoft.Json;
+using System.Text.Json; //migrate away from Newtonsoft ;)
+using System.Net.Http;
+using Microsoft.Net.Http.Headers;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CijferRegistratie.Controllers
 {
     public class PogingController : Controller
     {
         private readonly CijferRegistratieDbContext _context;
-
-        public PogingController(CijferRegistratieDbContext context)
+        private readonly HttpClient _httpClient;
+        public PogingController(CijferRegistratieDbContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
 
         // GET: Pogingen
@@ -96,29 +100,46 @@ namespace CijferRegistratie.Controllers
         {
             if (ModelState.IsValid)
             {
+                string studentType = await GetStudentTypeFromApiAsync();
 
-                var nieuwePoging = new Poging { Jaar = model.Jaar, Resultaat = model.Resultaat, VakId = model.VakId };
+                var nieuwePoging = new Poging { Jaar = model.Jaar, Resultaat = model.Resultaat, VakId = model.VakId, StudentType = studentType };
                 _context.Add(nieuwePoging);
                 await _context.SaveChangesAsync();
 
-                //Poging toegevoegd aan: {vaknaam}, met resultaat: {resultaat}
-                //als behaald => resultaat >= 6
-                //  Vak {vaknaam} is behaald
 
                 string jsonMutaties = this.HttpContext.Session.GetString("Mutaties") ?? "[]";
-                string[] mutaties = JsonConvert.DeserializeObject<string[]>(jsonMutaties);
-                Array.Resize<string>(ref mutaties, mutaties.Length + 1);
-                string poging = $"Poging toegevoegd aan: {model.Vak}, met resultaat: {model.Resultaat}";
+                string[] mutaties = JsonSerializer.Deserialize<string[]>(jsonMutaties) ?? Array.Empty<string>();
+                Array.Resize(ref mutaties, mutaties.Length + 1);
+
+
+                //Altijd: Poging toegevoegd aan: {vaknaam}, met resultaat: {resultaat}
+                //Als resultaat >= 6 dan: Vak {vaknaam} is behaald
+                string poging = $"Poging toegevoegd aan: {model.Vak}, met resultaat: {model.Resultaat} ({studentType})";
                 mutaties[mutaties.Length -1] = poging;
                 if (model.Resultaat >= 6) {                 
-                    Array.Resize<string>(ref mutaties, mutaties.Length + 1);
+                    Array.Resize(ref mutaties, mutaties.Length + 1);
                     mutaties[mutaties.Length -1] = $"Vak {model.Vak} is behaald";
                 }
-                this.HttpContext.Session.SetString("Mutaties", JsonConvert.SerializeObject(mutaties));
+                this.HttpContext.Session.SetString("Mutaties", JsonSerializer.Serialize(mutaties));
 
                 return RedirectToAction(nameof(Index), "Home");
             }
             return View(model);
+        }
+
+        private async Task<string> GetStudentTypeFromApiAsync()
+        {
+            string? studentType = string.Empty;
+            try
+            {
+                var result = await _httpClient.GetAsync("https://localhost:7107/studenttype");
+                studentType = await result.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                Console.WriteLine("OOPS.. do some logging here..");
+            }
+            return studentType;
         }
         #endregion
 

@@ -4,17 +4,9 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
-
-@*<p>
-    <a asp-action="Create">Create New</a>
-</p>*@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().Id)
-            </th>
             <th>
                 @Html.DisplayNameFor(model => model.VakListItems.FirstOrDefault().Naam)
             </th>
@@ -31,15 +23,22 @@
 @foreach (var item in Model.VakListItems) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.Naam)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.EC)
             </td>
             <td>
+                    @if (item.Behaald)
+                    {
+                        @Html.DisplayNameFor(modelItem => item.Behaald)
+                    }
+                    else
+                    {                        
+                        <a asp-controller="Poging" asp-action="CreateSpecial" asp-route-vakId="@item.Id">@item.CreateSpecialLinkText</a>
+                    }
+
+                    @*                    
                     @if (item.AantalPogingen > 0)
                     {
                         if (item.HoogsteResultaat >= 6)
@@ -54,7 +53,7 @@
                     else                    
                     {
                         <a asp-controller="Poging" asp-action="CreateSpecial" asp-route-vakId="@item.Id">Poging Toevoegen</a>                        
-                    }
+                    }*@
             </td>
         </tr>
 }
@@ -62,13 +61,12 @@
     </tbody>
 </table>
 
-<div style="color:darkgreen">
-    <hr/>
+<hr />
+<div class="text-success">
     <label asp-for="Mutaties"></label>
     <ul>
-    @foreach (var item in Model.Mutaties){
-        <li>@item</li>    
-    }
+        @foreach (var item in Model.Mutaties){
+            <li>@item</li>    
+        }
     </ul>
-
 </div>
